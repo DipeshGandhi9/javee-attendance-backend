@@ -10,6 +10,7 @@ import java.util.List;
 public class EmployeeController {
 
     /*Create Employee*/
+    @CrossOrigin
     @RequestMapping(value = "/employee", method = RequestMethod.POST,
             produces = "application/json", consumes = "application/json")
     public Employee createEmpolyee(@RequestBody Employee employee) {
@@ -18,6 +19,7 @@ public class EmployeeController {
     }
 
     /*Get Employee By Id*/
+    @CrossOrigin
     @RequestMapping(value = "/employee/{id}", method = RequestMethod.GET,
             produces = "application/json")
     public Employee getEmployeeById(@PathVariable("id") Long id) {
@@ -25,6 +27,7 @@ public class EmployeeController {
     }
 
     /*Retrieve All Employees*/
+    @CrossOrigin
     @RequestMapping(value = "/employees", method = RequestMethod.GET,
             produces = "application/json")
     public List<Employee> getEmployees() {
@@ -34,6 +37,7 @@ public class EmployeeController {
     }
 
     /*Update Employee*/
+    @CrossOrigin
     @RequestMapping(value = "/employee", method = RequestMethod.PUT,
             produces = "application/json", consumes = "application/json")
     public Employee updateEmpolyee(@RequestBody Employee employee) {
@@ -41,6 +45,7 @@ public class EmployeeController {
     }
 
     /*Delete Employee By Id*/
+    @CrossOrigin
     @RequestMapping(value = "/employee/{id}", method = RequestMethod.DELETE,
             produces = "application/json")
     public boolean deleteEmployeeById(@PathVariable("id") Long id) {
