@@ -1,0 +1,4 @@
+/* Database Query */
+CREATE DATABASE javee_attendance;
+CREATE USER 'javeeuser'@'localhost' IDENTIFIED BY 'user@javee';
+GRANT ALL ON javee_attendance.* TO 'javeeuser'@'localhost';

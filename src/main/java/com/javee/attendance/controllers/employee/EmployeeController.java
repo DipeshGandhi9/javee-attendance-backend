@@ -1,6 +1,8 @@
 package com.javee.attendance.controllers.employee;
 
 import com.javee.attendance.entities.Employee;
+import com.javee.attendance.repositories.EmployeeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -9,12 +11,16 @@ import java.util.List;
 @RestController
 public class EmployeeController {
 
+    @Autowired
+    private EmployeeRepository employeeRepository;
+
     /*Create Employee*/
     @CrossOrigin
     @RequestMapping(value = "/employee", method = RequestMethod.POST,
             produces = "application/json", consumes = "application/json")
     public Employee createEmpolyee(@RequestBody Employee employee) {
         /* Store data to DB */
+        employee = employeeRepository.save( employee );
         return employee;
     }
 
