@@ -16,8 +16,6 @@ public class UserController
 
 	@Autowired
 	private UserRepository userRepository;
-
-	/* User Login Service */
 	@CrossOrigin
 	@RequestMapping(value = "/login", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json")
@@ -32,12 +30,10 @@ public class UserController
 		}
 	}
 
-	/*Create User*/
 	@CrossOrigin
 	@RequestMapping(value = "/user", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json")
 	public User createUser(@RequestBody User user) {
-		/* Store data to DB */
 		user = userRepository.save( user );
 		return user;
 	}
