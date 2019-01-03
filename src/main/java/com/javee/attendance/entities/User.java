@@ -9,7 +9,6 @@ public class User
 	{
 		ADMIN, HR_MANAGER, EMPLOYEE
 	}
-
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
 	private Integer id;
