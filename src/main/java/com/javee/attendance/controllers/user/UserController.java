@@ -1,4 +1,4 @@
-package com.javee.attendance.controllers.employee;
+package com.javee.attendance.controllers.user;
 
 import com.javee.attendance.entities.User;
 import com.javee.attendance.repositories.UserRepository;
@@ -19,7 +19,7 @@ public class UserController
 	@Autowired
 	private UserRepository userRepository;
 	@CrossOrigin
-	@RequestMapping(value = "/login", method = RequestMethod.POST,
+	@RequestMapping(value = "/authenticate", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json")
 	public @ResponseBody
 	ResponseEntity<User> authenticateUser(@RequestBody User user ) {
