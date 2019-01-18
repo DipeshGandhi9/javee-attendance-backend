@@ -3,6 +3,9 @@ package com.javee.attendance.controllers.organization;
 import com.javee.attendance.entities.Organization;
 
 import com.javee.attendance.repositories.OrganizationRepository;
+
+import io.swagger.annotations.Api;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@Api(value = "Organization", description = "API for Organization" , tags = { "Organization" })
 public class OrganizationController
 {
 	@Autowired
