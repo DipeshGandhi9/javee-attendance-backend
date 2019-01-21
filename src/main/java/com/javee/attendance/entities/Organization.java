@@ -1,6 +1,5 @@
 package com.javee.attendance.entities;
 
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -10,16 +9,24 @@ import javax.persistence.Id;
 public class Organization
 {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue( strategy = GenerationType.IDENTITY )
 	private Long id;
+
 	private String organizationName;
+
 	private String address;
+
 	private String firstName;
+
 	private String lastName;
+
 	private String phoneNumber;
+
 	private String email;
 
-	public Organization(){}
+	public Organization()
+	{
+	}
 
 	public Organization( String organizationName, String address, String firstName, String lastName, String phoneNumber, String email )
 	{

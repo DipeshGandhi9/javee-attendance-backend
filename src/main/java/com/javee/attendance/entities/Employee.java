@@ -1,139 +1,152 @@
 package com.javee.attendance.entities;
 
-
 import javax.persistence.*;
 import java.util.Date;
 
 @Entity
-public class Employee {
+public class Employee
+{
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    @ManyToOne
-    private Organization organization;
-    private String firstName;
-    private String lastName;
-    private Date birthDate;
-    private String gender;
-    private  String address;
-    private String phoneNumber;
-    private String email;
+	@Id
+	@GeneratedValue( strategy = GenerationType.IDENTITY )
+	private Long id;
 
-    protected Employee() {
-    }
+	@ManyToOne
+	private Organization organization;
 
-    public Employee(String firstName, String lastName, Date birthDate, String gender, String address, String phoneNumber, String email,Organization organization) {
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.gender = gender;
-        this.birthDate = birthDate;
-        this.address = address;
-        this.phoneNumber = phoneNumber;
-        this.email = email;
-        this.organization = organization;
-    }
+	private String firstName;
 
-    public Long getId() {
-        return id;
-    }
+	private String lastName;
 
-    public String getFirstName() {
-        return firstName;
-    }
+	private Date birthDate;
 
-    public String getLastName() {
-        return lastName;
-    }
+	private String gender;
 
-    @Override
-    public String toString()
-    {
-        return "Employee{" +
-                "id=" + id +
-                ", organization=" + organization +
-                ", firstName='" + firstName + '\'' +
-                ", lastName='" + lastName + '\'' +
-                ", birthDate=" + birthDate +
-                ", gender='" + gender + '\'' +
-                ", address='" + address + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", email='" + email + '\'' +
-                '}';
-    }
+	private String address;
 
-    public void setId( Long id )
-    {
-        this.id = id;
-    }
+	private String phoneNumber;
 
-    public Organization getOrganization()
-    {
-        return organization;
-    }
+	private String email;
 
-    public void setOrganization( Organization organization )
-    {
-        this.organization = organization;
-    }
+	protected Employee()
+	{
+	}
 
-    public void setFirstName( String firstName )
-    {
-        this.firstName = firstName;
-    }
+	public Employee( String firstName, String lastName, Date birthDate, String gender, String address, String phoneNumber, String email, Organization organization )
+	{
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.gender = gender;
+		this.birthDate = birthDate;
+		this.address = address;
+		this.phoneNumber = phoneNumber;
+		this.email = email;
+		this.organization = organization;
+	}
 
-    public void setLastName( String lastName )
-    {
-        this.lastName = lastName;
-    }
+	public Long getId()
+	{
+		return id;
+	}
 
-    public Date getBirthDate()
-    {
-        return birthDate;
-    }
+	public String getFirstName()
+	{
+		return firstName;
+	}
 
-    public void setBirthDate( Date birthDate )
-    {
-        this.birthDate = birthDate;
-    }
+	public String getLastName()
+	{
+		return lastName;
+	}
 
-    public String getGender()
-    {
-        return gender;
-    }
+	@Override
+	public String toString()
+	{
+		return "Employee{" +
+				"id=" + id +
+				", organization=" + organization +
+				", firstName='" + firstName + '\'' +
+				", lastName='" + lastName + '\'' +
+				", birthDate=" + birthDate +
+				", gender='" + gender + '\'' +
+				", address='" + address + '\'' +
+				", phoneNumber='" + phoneNumber + '\'' +
+				", email='" + email + '\'' +
+				'}';
+	}
 
-    public void setGender( String gender )
-    {
-        this.gender = gender;
-    }
+	public void setId( Long id )
+	{
+		this.id = id;
+	}
 
-    public String getAddress()
-    {
-        return address;
-    }
+	public Organization getOrganization()
+	{
+		return organization;
+	}
 
-    public void setAddress( String address )
-    {
-        this.address = address;
-    }
+	public void setOrganization( Organization organization )
+	{
+		this.organization = organization;
+	}
 
-    public String getPhoneNumber()
-    {
-        return phoneNumber;
-    }
+	public void setFirstName( String firstName )
+	{
+		this.firstName = firstName;
+	}
 
-    public void setPhoneNumber( String phoneNumber )
-    {
-        this.phoneNumber = phoneNumber;
-    }
+	public void setLastName( String lastName )
+	{
+		this.lastName = lastName;
+	}
 
-    public String getEmail()
-    {
-        return email;
-    }
+	public Date getBirthDate()
+	{
+		return birthDate;
+	}
 
-    public void setEmail( String email )
-    {
-        this.email = email;
-    }
+	public void setBirthDate( Date birthDate )
+	{
+		this.birthDate = birthDate;
+	}
+
+	public String getGender()
+	{
+		return gender;
+	}
+
+	public void setGender( String gender )
+	{
+		this.gender = gender;
+	}
+
+	public String getAddress()
+	{
+		return address;
+	}
+
+	public void setAddress( String address )
+	{
+		this.address = address;
+	}
+
+	public String getPhoneNumber()
+	{
+		return phoneNumber;
+	}
+
+	public void setPhoneNumber( String phoneNumber )
+	{
+		this.phoneNumber = phoneNumber;
+	}
+
+	public String getEmail()
+	{
+		return email;
+	}
+
+	public void setEmail( String email )
+	{
+		this.email = email;
+	}
 }

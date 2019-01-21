@@ -10,54 +10,60 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@Api(value = "Employee", description = "REST API for Employee", tags = { "Employee" })
-public class EmployeeController {
-    @Autowired
-    private EmployeeRepository employeeRepository;
+@Api( value = "Employee", description = "REST API for Employee", tags = { "Employee" } )
+@RequestMapping( "/api" )
+public class EmployeeController
+{
+	@Autowired
+	private EmployeeRepository employeeRepository;
 
-    @CrossOrigin
-    @RequestMapping(value = "/employee", method = RequestMethod.POST,
-            produces = "application/json", consumes = "application/json")
-    public Employee createEmpolyee(@RequestBody Employee employee) {
-        employee = employeeRepository.save( employee );
-        return employee;
-    }
+	@CrossOrigin
+	@RequestMapping( value = "/employee", method = RequestMethod.POST,
+			produces = "application/json", consumes = "application/json" )
+	public Employee createEmpolyee( @RequestBody Employee employee )
+	{
+		employee = employeeRepository.save( employee );
+		return employee;
+	}
 
-    @CrossOrigin
-    @RequestMapping(value = "/employee/{id}", method = RequestMethod.GET,
-            produces = "application/json")
-    public Employee getEmployeeById(@PathVariable("id") Long id) {
-        Optional<Employee> employeeOptional = employeeRepository.findById( id );
-        return employeeOptional.get();
-    }
+	@CrossOrigin
+	@RequestMapping( value = "/employee/{id}", method = RequestMethod.GET,
+			produces = "application/json" )
+	public Employee getEmployeeById( @PathVariable( "id" ) Long id )
+	{
+		Optional<Employee> employeeOptional = employeeRepository.findById( id );
+		return employeeOptional.get();
+	}
 
-    @CrossOrigin
-    @RequestMapping(value = "/employees", method = RequestMethod.GET,
-            produces = "application/json")
-    public List<Employee> getEmployees() {
+	@CrossOrigin
+	@RequestMapping( value = "/employees", method = RequestMethod.GET,
+			produces = "application/json" )
+	public List<Employee> getEmployees()
+	{
+		return employeeRepository.findAll();
+	}
 
-        return  employeeRepository.findAll();
-    }
+	@CrossOrigin
+	@RequestMapping( value = "/employee/{id}", method = RequestMethod.PUT,
+			produces = "application/json", consumes = "application/json" )
+	public ResponseEntity<Object> updateEmployee( @RequestBody Employee employee, @PathVariable Long id )
+	{
+		Optional<Employee> employeeOptional = employeeRepository.findById( id );
+		if (!employeeOptional.isPresent())
+			return ResponseEntity.notFound().build();
+		employee.setId( id );
+		employeeRepository.save( employee );
+		return ResponseEntity.noContent().build();
+	}
 
-    @CrossOrigin
-    @RequestMapping(value = "/employee/{id}", method = RequestMethod.PUT,
-            produces = "application/json", consumes = "application/json")
-    public ResponseEntity<Object> updateEmployee(@RequestBody Employee employee,  @PathVariable Long id) {
-        Optional<Employee> employeeOptional = employeeRepository.findById(id);
-        if (!employeeOptional.isPresent())
-            return ResponseEntity.notFound().build();
-        employee.setId(id);
-        employeeRepository.save(employee);
-        return ResponseEntity.noContent().build();
-    }
+	@CrossOrigin
+	@RequestMapping( value = "/employee/{id}", method = RequestMethod.DELETE,
+			produces = "application/json" )
+	public boolean deleteEmployeeById( @PathVariable( "id" ) Long id )
+	{
+		employeeRepository.deleteById( id );
+		return true;
 
-    @CrossOrigin
-    @RequestMapping(value = "/employee/{id}", method = RequestMethod.DELETE,
-            produces = "application/json")
-    public boolean deleteEmployeeById(@PathVariable("id") Long id) {
-        employeeRepository.deleteById( id );
-        return true;
-
-    }
+	}
 
 }
