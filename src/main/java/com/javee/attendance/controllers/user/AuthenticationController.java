@@ -4,6 +4,7 @@ import com.javee.attendance.entities.User;
 import com.javee.attendance.model.AuthenticationResponse;
 import com.javee.attendance.repositories.UserRepository;
 import com.javee.attendance.security.JWTTokenGenerator;
+import com.javee.attendance.security.PasswordEncryptor;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +29,13 @@ public class AuthenticationController
 	public @ResponseBody
 	ResponseEntity<AuthenticationResponse> authenticateUser( @RequestBody User user )
 	{
-		User userEntity = userRepository.findByUserNameAndPassword( user.getUserName(), user.getPassword() );
+		String encrypted = PasswordEncryptor.encrypt( user.getPassword() );
+		User userEntity = userRepository.findByUserNameAndPassword( user.getUserName(), encrypted );
 
 		if (userEntity != null)
 		{
-			String token = JWTTokenGenerator.generateToken(user);
-			AuthenticationResponse authenticationResponse = new AuthenticationResponse(token);
+			String token = JWTTokenGenerator.generateToken( user );
+			AuthenticationResponse authenticationResponse = new AuthenticationResponse( token );
 			return new ResponseEntity<>( authenticationResponse, HttpStatus.OK );
 		}
 		else
@@ -45,7 +47,7 @@ public class AuthenticationController
 	@CrossOrigin
 	@RequestMapping( value = "/admin", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<User> createAdminUser( )
+	public ResponseEntity<User> createAdminUser()
 	{
 		User user = userRepository.findByUserName( adminName );
 
@@ -54,7 +56,7 @@ public class AuthenticationController
 
 		user = new User();
 		user.setUserName( adminName );
-		user.setPassword( adminPassword );
+		user.setPassword( PasswordEncryptor.encrypt( adminPassword ) );
 		user.setRole( User.ROLE.ADMIN );
 		user = userRepository.save( user );
 		return new ResponseEntity<>( user, HttpStatus.CREATED );

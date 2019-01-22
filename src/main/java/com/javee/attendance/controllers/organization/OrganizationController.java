@@ -1,10 +1,12 @@
 package com.javee.attendance.controllers.organization;
 
 import com.javee.attendance.entities.Organization;
+import com.javee.attendance.model.JWTUserDetails;
 import com.javee.attendance.repositories.OrganizationRepository;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
@@ -20,7 +22,7 @@ public class OrganizationController
 	@CrossOrigin
 	@RequestMapping( value = "/organization", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json" )
-	public Organization createOrganization( @RequestBody Organization organization )
+	public Organization createOrganization( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Organization organization )
 	{
 		organization = organizationRepository.save( organization );
 		return organization;
@@ -29,7 +31,7 @@ public class OrganizationController
 	@CrossOrigin
 	@RequestMapping( value = "/organization/{id}", method = RequestMethod.GET,
 			produces = "application/json" )
-	public Organization getOrganizationById( @PathVariable( "id" ) Long id )
+	public Organization getOrganizationById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
 	{
 		Optional<Organization> organizationOptional = organizationRepository.findById( id );
 		return organizationOptional.get();
@@ -38,7 +40,7 @@ public class OrganizationController
 	@CrossOrigin
 	@RequestMapping( value = "/organizations", method = RequestMethod.GET,
 			produces = "application/json" )
-	public List<Organization> getOrganizations()
+	public List<Organization> getOrganizations( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
 	{
 		return organizationRepository.findAll();
 	}
@@ -46,7 +48,7 @@ public class OrganizationController
 	@CrossOrigin
 	@RequestMapping( value = "/organization/{id}", method = RequestMethod.PUT,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<Object> updateOrganization( @RequestBody Organization organization, @PathVariable Long id )
+	public ResponseEntity<Object> updateOrganization( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Organization organization, @PathVariable Long id )
 	{
 		Optional<Organization> organizationOptional = organizationRepository.findById( id );
 		if (!organizationOptional.isPresent())
@@ -59,7 +61,7 @@ public class OrganizationController
 	@CrossOrigin
 	@RequestMapping( value = "/organization/{id}", method = RequestMethod.DELETE,
 			produces = "application/json" )
-	public boolean deleteOrganizationById( @PathVariable( "id" ) Long id )
+	public boolean deleteOrganizationById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
 	{
 		organizationRepository.deleteById( id );
 		return true;
