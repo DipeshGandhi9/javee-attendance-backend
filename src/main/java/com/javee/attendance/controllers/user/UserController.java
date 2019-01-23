@@ -65,6 +65,8 @@ public class UserController
 		if (!userOptional.isPresent())
 			return ResponseEntity.notFound().build();
 		user.setId( id );
+		String password = user.getPassword();
+		user.setPassword( PasswordEncryptor.encrypt( password ) );
 		userRepository.save( user );
 		return ResponseEntity.noContent().build();
 	}
