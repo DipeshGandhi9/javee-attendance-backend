@@ -3,10 +3,10 @@ package com.javee.attendance.security;
 import com.javee.attendance.model.JWTAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
-import org.springframework.stereotype.Component;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -20,6 +20,15 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 
 	public JWTAuthenticationTokenFilter(){
 		super("/api/**");
+	}
+
+	@Override
+	protected boolean requiresAuthentication( HttpServletRequest request, HttpServletResponse response )
+	{
+		if (request.getMethod().equals( HttpMethod.OPTIONS.name())) {
+			return false;
+		}
+		return super.requiresAuthentication( request, response );
 	}
 
 	@Override

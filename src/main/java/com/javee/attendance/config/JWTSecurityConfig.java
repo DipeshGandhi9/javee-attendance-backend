@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
@@ -52,13 +53,20 @@ public class JWTSecurityConfig extends WebSecurityConfigurerAdapter
 	@Override
 	protected void configure( HttpSecurity http ) throws Exception
 	{
-		http.csrf().disable().authorizeRequests().antMatchers( "**/api/**" ).authenticated()
+		http.csrf().disable().authorizeRequests()
+				.antMatchers( HttpMethod.OPTIONS,"**" ).permitAll()
+				.antMatchers( "**/api/**" ).authenticated()
 				.and()
 				.exceptionHandling().authenticationEntryPoint( exceptionEntryPoint )
 				.and()
 				.sessionManagement().sessionCreationPolicy( SessionCreationPolicy.STATELESS );
 		http.addFilterBefore( authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class );
 		http.headers().cacheControl();
+//		http.headers().addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "*"))
+//				.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Methods", "POST, GET"))
+//				.addHeaderWriter(new StaticHeadersWriter("Access-Control-Max-Age", "3600"))
+//				.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Credentials", "true"))
+//				.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Headers", "Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization"));
 	}
 }
 

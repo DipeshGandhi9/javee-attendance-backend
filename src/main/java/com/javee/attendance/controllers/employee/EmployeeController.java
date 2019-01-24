@@ -1,12 +1,16 @@
 package com.javee.attendance.controllers.employee;
 
 import com.javee.attendance.entities.Employee;
+import com.javee.attendance.entities.User;
 import com.javee.attendance.model.JWTUserDetails;
 import com.javee.attendance.repositories.EmployeeRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -42,10 +46,14 @@ public class EmployeeController
 	@CrossOrigin
 	@RequestMapping( value = "/employees", method = RequestMethod.GET,
 			produces = "application/json" )
-	public List<Employee> getEmployees( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
+	public ResponseEntity<List<Employee>> getEmployees( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
 	{
 		System.out.println( "User Id : " + jwtUserDetails.getId() + " User Name : " + jwtUserDetails.getUsername());
-		return employeeRepository.findAll();
+		if(!jwtUserDetails.getAuthorities().stream().findFirst().get().toString().equalsIgnoreCase( User.ROLE.ADMIN.name()) ){
+			return new ResponseEntity<>(  HttpStatus.FORBIDDEN );
+		}
+
+		return new ResponseEntity<>( employeeRepository.findAll(), HttpStatus.OK );
 	}
 
 	@CrossOrigin
