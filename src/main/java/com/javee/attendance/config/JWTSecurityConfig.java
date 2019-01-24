@@ -20,7 +20,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import java.util.Collections;
 
-@EnableGlobalMethodSecurity(prePostEnabled = true)
+@EnableGlobalMethodSecurity( prePostEnabled = true )
 @EnableWebSecurity
 @Configuration
 public class JWTSecurityConfig extends WebSecurityConfigurerAdapter
@@ -34,18 +34,20 @@ public class JWTSecurityConfig extends WebSecurityConfigurerAdapter
 	private JWTAuthenticationExceptionEntryPoint exceptionEntryPoint;
 
 	@Bean
-	public AuthenticationManager authenticationManager (){
+	public AuthenticationManager authenticationManager()
+	{
 		return new ProviderManager( Collections.singletonList( authenticationProvider ) );
 	}
 
 	@Bean
-	public JWTAuthenticationTokenFilter authenticationTokenFilter (){
+	public JWTAuthenticationTokenFilter authenticationTokenFilter()
+	{
 
 		JWTAuthenticationTokenFilter filter = new JWTAuthenticationTokenFilter();
 
-		filter.setAuthenticationManager(authenticationManager());
+		filter.setAuthenticationManager( authenticationManager() );
 
-		filter.setAuthenticationSuccessHandler(new JWTSuccessHandler());
+		filter.setAuthenticationSuccessHandler( new JWTSuccessHandler() );
 
 		return filter;
 	}
@@ -54,7 +56,7 @@ public class JWTSecurityConfig extends WebSecurityConfigurerAdapter
 	protected void configure( HttpSecurity http ) throws Exception
 	{
 		http.csrf().disable().authorizeRequests()
-				.antMatchers( HttpMethod.OPTIONS,"**" ).permitAll()
+				.antMatchers( HttpMethod.OPTIONS, "**" ).permitAll()
 				.antMatchers( "**/api/**" ).authenticated()
 				.and()
 				.exceptionHandling().authenticationEntryPoint( exceptionEntryPoint )
@@ -62,11 +64,6 @@ public class JWTSecurityConfig extends WebSecurityConfigurerAdapter
 				.sessionManagement().sessionCreationPolicy( SessionCreationPolicy.STATELESS );
 		http.addFilterBefore( authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class );
 		http.headers().cacheControl();
-//		http.headers().addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "*"))
-//				.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Methods", "POST, GET"))
-//				.addHeaderWriter(new StaticHeadersWriter("Access-Control-Max-Age", "3600"))
-//				.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Credentials", "true"))
-//				.addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Headers", "Origin,Accept,X-Requested-With,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization"));
 	}
 }
 

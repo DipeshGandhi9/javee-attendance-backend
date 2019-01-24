@@ -18,16 +18,17 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 
 	private static final Logger LOGGER = LoggerFactory.getLogger( JWTAuthenticationTokenFilter.class );
 
-	public JWTAuthenticationTokenFilter(){
-		super("/api/**");
+	public JWTAuthenticationTokenFilter()
+	{
+		super( "/api/**" );
 	}
 
 	@Override
 	protected boolean requiresAuthentication( HttpServletRequest request, HttpServletResponse response )
 	{
-		if (request.getMethod().equals( HttpMethod.OPTIONS.name())) {
+		if (request.getMethod().equals( HttpMethod.OPTIONS.name() ))
 			return false;
-		}
+
 		return super.requiresAuthentication( request, response );
 	}
 
@@ -46,7 +47,6 @@ public class JWTAuthenticationTokenFilter extends AbstractAuthenticationProcessi
 
 		JWTAuthenticationToken token = new JWTAuthenticationToken( authorizationToken );
 		return getAuthenticationManager().authenticate( token );
-
 	}
 
 	@Override
