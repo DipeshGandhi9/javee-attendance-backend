@@ -3,6 +3,9 @@ package com.javee.attendance.controllers.attendance;
 import com.javee.attendance.entities.Attendance;
 import com.javee.attendance.model.JWTUserDetails;
 import com.javee.attendance.repositories.AttendanceRepository;
+import com.javee.attendance.repositories.AttendanceRepositoryCustom;
+import com.javee.attendance.repositories.EmployeeRepository;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +23,10 @@ public class AttendanceController
 
 	@Autowired
 	private AttendanceRepository attendanceRepository;
+	@Autowired
+	private AttendanceRepositoryCustom attendanceRepositoryCustom;
+	@Autowired
+	private EmployeeRepository employeeRepository;
 
 	@CrossOrigin
 	@ApiOperation( value = "Create Attendance", tags = { "Attendance" } )
@@ -27,6 +34,9 @@ public class AttendanceController
 			produces = "application/json", consumes = "application/json" )
 	public Attendance createAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Attendance attendance )
 	{
+		if( attendance.getEmployee()!=null && attendance.getEmployee().getId()!= null ) {
+			attendance.setEmployee(employeeRepository.findById(attendance.getEmployee().getId()).get());
+		}
 		attendance = attendanceRepository.save( attendance );
 		return attendance;
 	}
@@ -61,6 +71,7 @@ public class AttendanceController
 			return ResponseEntity.notFound().build();
 		attendance.setId( id );
 		attendanceRepository.save( attendance );
+		//attendanceRepositoryCustom.updateTimeOut(attendance);
 		return ResponseEntity.noContent().build();
 	}
 }

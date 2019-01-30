@@ -11,18 +11,28 @@ public class Attendance
 	private Long id;
 	@ManyToOne
 	private Employee employee;
-	private Date timeIn;
-	private Date timeOut;
+	private Date date;
+	private Date timeInDate;
+	private Date timeOutDate;
 
 	protected Attendance()
 	{
 	}
 
-	public Attendance( Employee employee, Date timeIn, Date timeOut )
+	public Attendance( Employee employee,Date date, Date timeInDate, Date timeOutDate )
 	{
 		this.employee = employee;
-		this.timeIn = timeIn;
-		this.timeOut = timeOut;
+		this.date = date;
+		this.timeInDate = timeInDate;
+		this.timeOutDate = timeOutDate;
+	}
+
+	public Date getDate() {
+		return date;
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
 	}
 
 	public Long getId()
@@ -45,23 +55,21 @@ public class Attendance
 		this.employee = employee;
 	}
 
-	public Date getTimeInDate()
-	{
-		return timeIn;
+	public Date getTimeInDate() {
+		return timeInDate;
 	}
 
-	public void setTimeInDate( Date timeIn )
-	{
-		this.timeIn = timeIn;
+	public void setTimeInDate(Date timeInDate) {
+		this.timeInDate = timeInDate;
 	}
 
-	public Date geTimeOuttDate()
-	{
-		return timeOut;
+	public Date getTimeOutDate() {
+		return timeOutDate;
 	}
 
-	public void setTimeOutDate( Date timeOut )
-	{
-		this.timeOut = timeOut;
+	public void setTimeOutDate(Date timeOutDate) {
+		this.timeOutDate = timeOutDate;
 	}
+
+	
 }
