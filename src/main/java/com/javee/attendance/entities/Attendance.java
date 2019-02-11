@@ -19,6 +19,12 @@ public class Attendance
 	{
 	}
 
+	public Attendance( Employee employee) {
+		this.employee = employee;
+		this.date = new Date();
+		this.timeInDate = date;
+	}
+
 	public Attendance( Employee employee,Date date, Date timeInDate, Date timeOutDate )
 	{
 		this.employee = employee;

@@ -1,32 +1,39 @@
 package com.javee.attendance.controllers.attendance;
 
+import com.javee.attendance.controllers.BaseController;
 import com.javee.attendance.entities.Attendance;
+import com.javee.attendance.entities.Employee;
+import com.javee.attendance.entities.User;
 import com.javee.attendance.model.JWTUserDetails;
 import com.javee.attendance.repositories.AttendanceRepository;
-import com.javee.attendance.repositories.AttendanceRepositoryCustom;
 import com.javee.attendance.repositories.EmployeeRepository;
 
+import com.javee.attendance.repositories.UserRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @Api( value = "Attendance", description = "API for Attendance", tags = { "Attendance" } )
 @RequestMapping( "/api" )
-public class AttendanceController
+public class AttendanceController extends BaseController
 {
 
 	@Autowired
 	private AttendanceRepository attendanceRepository;
-	@Autowired
-	private AttendanceRepositoryCustom attendanceRepositoryCustom;
+
 	@Autowired
 	private EmployeeRepository employeeRepository;
+
+	@Autowired
+	private UserRepository userRepository;
 
 	@CrossOrigin
 	@ApiOperation( value = "Create Attendance", tags = { "Attendance" } )
@@ -68,12 +75,64 @@ public class AttendanceController
 	{
 		Optional<Attendance> attendanceOptional = attendanceRepository.findById( id );
 		if (!attendanceOptional.isPresent())
-			return ResponseEntity.notFound().build();
+			return generateNotFoundResponse();
+
 		attendance.setId( id );
-		attendanceRepository.save( attendance );
-		//attendanceRepositoryCustom.updateTimeOut(attendance);
-		return ResponseEntity.noContent().build();
+		attendance = attendanceRepository.save( attendance );
+		return generateOkResponse(attendance);
 	}
+
+	@CrossOrigin
+	@ApiOperation( value = "Set Attendance Time In", tags = { "Attendance" } )
+	@RequestMapping( value = "/attendance/timein/{id}", method = RequestMethod.POST,
+			produces = "application/json", consumes = "application/json" )
+	public ResponseEntity<Object> createTimeInAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable Long id )
+	{
+		if (id == null || id == 0)
+			return generateBadRequestResponse();
+
+		Employee employee = getLoggedInEmployee(jwtUserDetails);
+		if( (!getLoggedInUserRole(jwtUserDetails).equals(User.ROLE.ADMIN) ) && (employee == null || employee.getId() != id)){
+			System.out.println("Unauthorized request..");
+			return generateUnauthorizedResponse();
+		}
+
+		if(employee == null)
+			employee = employeeRepository.findById(id).get();
+
+		Attendance attendance = new Attendance(employee);
+		attendance = attendanceRepository.save( attendance );
+		return generateOkResponse(attendance);
+	}
+
+
+	@CrossOrigin
+	@ApiOperation( value = "Set Attendance Time Out", tags = { "Attendance" } )
+	@RequestMapping( value = "/attendance/timeout/{id}", method = RequestMethod.POST,
+			produces = "application/json", consumes = "application/json" )
+	public ResponseEntity<Object> updateTimeOutAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable Long id )
+	{
+		if (id == null || id == 0)
+			return generateBadRequestResponse();
+
+		Employee employee = getLoggedInEmployee(jwtUserDetails);
+		if( (!getLoggedInUserRole(jwtUserDetails).equals(User.ROLE.ADMIN) ) && (employee == null || employee.getId() != id)){
+			System.out.println("Unauthorized request..");
+			return generateUnauthorizedResponse();
+		}
+
+		List<Attendance> attendanceList = attendanceRepository.findAllTodaysAttendanceByEmployee(id);
+
+		Attendance attendance = null;
+		for(Attendance attendanceObject : attendanceList){
+			if(attendanceObject.getTimeOutDate() == null)
+				attendanceObject.setTimeOutDate(new Date());
+			attendance = attendanceRepository.save(attendanceObject);
+		}
+
+		return generateOkResponse(attendance);
+	}
+
 }
 	
 
