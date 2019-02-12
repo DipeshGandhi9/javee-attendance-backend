@@ -1,5 +1,6 @@
 package com.javee.attendance.controllers.user;
 
+import com.javee.attendance.controllers.BaseController;
 import com.javee.attendance.entities.User;
 import com.javee.attendance.model.AuthenticationResponse;
 import com.javee.attendance.repositories.UserRepository;
@@ -9,13 +10,12 @@ import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Api( value = "Authentication", description = "Endpoint for User Authentication", tags = { "Authentication" } )
-public class AuthenticationController
+public class AuthenticationController extends BaseController
 {
 	private static final Logger LOGGER = LoggerFactory.getLogger( AuthenticationController.class );
 	private static String adminName = "admin", adminPassword = "password";
@@ -36,11 +36,11 @@ public class AuthenticationController
 		{
 			String token = JWTTokenGenerator.generateToken( user );
 			AuthenticationResponse authenticationResponse = new AuthenticationResponse( token );
-			return new ResponseEntity<>( authenticationResponse, HttpStatus.OK );
+			return generateOkResponse( authenticationResponse );
 		}
 		else
 		{
-			return new ResponseEntity( HttpStatus.BAD_REQUEST );
+			return generateBadRequestResponse();
 		}
 	}
 
@@ -52,14 +52,14 @@ public class AuthenticationController
 		User user = userRepository.findByUserName( adminName );
 
 		if (user != null)
-			return new ResponseEntity( HttpStatus.UNAUTHORIZED );
+			return generateUnauthorizedResponse();
 
 		user = new User();
 		user.setUserName( adminName );
 		user.setPassword( PasswordEncryptor.encrypt( adminPassword ) );
 		user.setRole( User.ROLE.ADMIN );
 		user = userRepository.save( user );
-		return new ResponseEntity<>( user, HttpStatus.CREATED );
+		return generateOkResponse( user );
 	}
 }
 
