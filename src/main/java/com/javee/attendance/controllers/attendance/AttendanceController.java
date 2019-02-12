@@ -37,12 +37,19 @@ public class AttendanceController extends BaseController
 	@ApiOperation( value = "Create Attendance", tags = { "Attendance" } )
 	@RequestMapping( value = "/attendance", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<Attendance> createAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Attendance attendance )
+	public ResponseEntity createAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Attendance attendance )
 	{
+
+		if (attendance.getEmployee() == null || attendance.getEmployee().getId() != null)
+			return generateBadRequestResponse();
+
+		Employee employee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( employee == null || !employee.getId().equals( attendance.getEmployee().getId() ) ))
+			return generateUnauthorizedResponse();
+
 		if (attendance.getEmployee() != null && attendance.getEmployee().getId() != null)
-		{
 			attendance.setEmployee( employeeRepository.findById( attendance.getEmployee().getId() ).get() );
-		}
+
 		attendance = attendanceRepository.save( attendance );
 		return generateOkResponse( attendance );
 	}
@@ -51,29 +58,40 @@ public class AttendanceController extends BaseController
 	@ApiOperation( value = "Get Attendance", tags = { "Attendance" } )
 	@RequestMapping( value = "/attendance/{id}", method = RequestMethod.GET,
 			produces = "application/json" )
-	public ResponseEntity<Attendance> getAttendanceById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
+	public ResponseEntity getAttendanceById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
 	{
 		if (id == null || id == 0)
 			return generateBadRequestResponse();
 
 		Optional<Attendance> attendanceOptional = attendanceRepository.findById( id );
-		return generateOkResponse( attendanceOptional.get() );
+
+		if (attendanceOptional.isPresent())
+			return generateOkResponse( attendanceOptional.get() );
+
+		return generateNotFoundResponse();
 	}
 
 	@CrossOrigin
 	@ApiOperation( value = "Get All Attendances", tags = { "Attendance" } )
 	@RequestMapping( value = "/attendance", method = RequestMethod.GET,
 			produces = "application/json" )
-	public ResponseEntity<List<Attendance>> getAttendances( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
+	public ResponseEntity getAllAttendances( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
 	{
-		return generateOkResponse( attendanceRepository.findAll() );
+		Employee employee = getLoggedInEmployee( jwtUserDetails );
+		if (getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ))
+			return generateOkResponse( attendanceRepository.findAll() );
+
+		if (employee != null || employee.getId() != null)
+			return generateOkResponse( attendanceRepository.findAllByEmployee( employee.getId() ) );
+
+		return generateUnauthorizedResponse();
 	}
 
 	@CrossOrigin
 	@ApiOperation( value = "Update Attendance", tags = { "Attendance" } )
 	@RequestMapping( value = "/attendance/{id}", method = RequestMethod.PUT,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<Attendance> updateAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Attendance attendance, @PathVariable Long id )
+	public ResponseEntity updateAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Attendance attendance, @PathVariable Long id )
 	{
 		if (id == null || id == 0)
 			return generateBadRequestResponse();
@@ -91,20 +109,21 @@ public class AttendanceController extends BaseController
 	@ApiOperation( value = "Set Attendance Time In", tags = { "Attendance" } )
 	@RequestMapping( value = "/attendance/timein/{id}", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<Attendance> createTimeInAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable Long id )
+	public ResponseEntity createTimeInAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable Long id )
 	{
 		if (id == null || id == 0)
 			return generateBadRequestResponse();
 
 		Employee employee = getLoggedInEmployee( jwtUserDetails );
-		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( employee == null || employee.getId() != id ))
-		{
-			System.out.println( "Unauthorized request.." );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( employee == null || !employee.getId().equals( id ) ))
 			return generateUnauthorizedResponse();
-		}
 
 		if (employee == null)
-			employee = employeeRepository.findById( id ).get();
+		{
+			Optional<Employee> employeeOptional = employeeRepository.findById( id );
+			if (employeeOptional.isPresent())
+				employee = employeeOptional.get();
+		}
 
 		Attendance attendance = new Attendance( employee );
 		attendance = attendanceRepository.save( attendance );
@@ -115,17 +134,14 @@ public class AttendanceController extends BaseController
 	@ApiOperation( value = "Set Attendance Time Out", tags = { "Attendance" } )
 	@RequestMapping( value = "/attendance/timeout/{id}", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<Attendance> updateTimeOutAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable Long id )
+	public ResponseEntity updateTimeOutAttendance( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable Long id )
 	{
 		if (id == null || id == 0)
 			return generateBadRequestResponse();
 
 		Employee employee = getLoggedInEmployee( jwtUserDetails );
-		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( employee == null || employee.getId() != id ))
-		{
-			System.out.println( "Unauthorized request.." );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( employee == null || !employee.getId().equals( id ) ))
 			return generateUnauthorizedResponse();
-		}
 
 		List<Attendance> attendanceList = attendanceRepository.findAllTodaysAttendanceByEmployee( id );
 

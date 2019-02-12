@@ -13,4 +13,7 @@ public interface AttendanceRepository extends CrudRepository<Attendance, Long>
 
 	@Query(value = "Select a from Attendance a where a.employee.id = :eid and DATE(a.date) = CURDATE() Order By a.date desc")
 	List<Attendance> findAllTodaysAttendanceByEmployee(@Param("eid") Long employeeId);
+
+	@Query(value = "Select a from Attendance a where a.employee.id = :eid Order By a.date desc")
+	List<Attendance> findAllByEmployee(@Param("eid") Long employeeId);
 }
