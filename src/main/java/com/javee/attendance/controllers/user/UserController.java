@@ -38,6 +38,16 @@ public class UserController extends BaseController
 	}
 
 	@CrossOrigin
+	@ApiOperation( value = "Get Logged in User", tags = { "User" } )
+	@RequestMapping( value = "/user/loggedin", method = RequestMethod.GET,
+			produces = "application/json" )
+	public ResponseEntity<Object> fetchLoggedInUser( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
+	{
+		User loggedInUser = getLoggedInUser( jwtUserDetails );
+		return generateOkResponse( loggedInUser );
+	}
+
+	@CrossOrigin
 	@ApiOperation( value = "Get User", tags = { "User" } )
 	@RequestMapping( value = "/user/{id}", method = RequestMethod.GET,
 			produces = "application/json" )
@@ -90,5 +100,6 @@ public class UserController extends BaseController
 		userRepository.deleteById( id );
 		return generateNoContentResponse();
 	}
+
 }
 
