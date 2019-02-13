@@ -1,6 +1,7 @@
 package com.javee.attendance.controllers.user;
 
 import com.javee.attendance.controllers.BaseController;
+import com.javee.attendance.entities.Employee;
 import com.javee.attendance.entities.User;
 import com.javee.attendance.model.JWTUserDetails;
 import com.javee.attendance.repositories.UserRepository;
@@ -13,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -29,8 +29,15 @@ public class UserController extends BaseController
 	@CrossOrigin
 	@RequestMapping( value = "/user", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<User> createUser( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody User user )
+	public ResponseEntity createUser( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody User user )
 	{
+		if (user == null)
+			return generateBadRequestResponse();
+
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null ))
+			return generateUnauthorizedResponse();
+
 		String password = user.getPassword();
 		user.setPassword( PasswordEncryptor.encrypt( password ) );
 		user = userRepository.save( user );
@@ -41,9 +48,16 @@ public class UserController extends BaseController
 	@ApiOperation( value = "Get Logged in User", tags = { "User" } )
 	@RequestMapping( value = "/user/loggedin", method = RequestMethod.GET,
 			produces = "application/json" )
-	public ResponseEntity<Object> fetchLoggedInUser( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
+	public ResponseEntity fetchLoggedInUser( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
 	{
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.EMPLOYEE ) ) && ( loggedInEmployee == null ))
+			return generateUnauthorizedResponse();
+
 		User loggedInUser = getLoggedInUser( jwtUserDetails );
+		if (loggedInUser == null)
+			return generateNotFoundResponse();
+
 		return generateOkResponse( loggedInUser );
 	}
 
@@ -51,12 +65,19 @@ public class UserController extends BaseController
 	@ApiOperation( value = "Get User", tags = { "User" } )
 	@RequestMapping( value = "/user/{id}", method = RequestMethod.GET,
 			produces = "application/json" )
-	public ResponseEntity<User> getUserById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
+	public ResponseEntity getUserById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
 	{
 		if (id == null || id == 0)
 			return generateBadRequestResponse();
 
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null ))
+			return generateUnauthorizedResponse();
+
 		Optional<User> userOptional = userRepository.findById( id );
+		if (!userOptional.isPresent())
+			return generateNotFoundResponse();
+
 		return generateOkResponse( userOptional.get() );
 	}
 
@@ -64,8 +85,12 @@ public class UserController extends BaseController
 	@ApiOperation( value = "Get List of Users", tags = { "User" } )
 	@RequestMapping( value = "/users", method = RequestMethod.GET,
 			produces = "application/json" )
-	public ResponseEntity<List<User>> getUsers( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
+	public ResponseEntity getUsers( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
 	{
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null ))
+			return generateUnauthorizedResponse();
+
 		return generateOkResponse( userRepository.findAll() );
 	}
 
@@ -73,10 +98,14 @@ public class UserController extends BaseController
 	@ApiOperation( value = "Update User", tags = { "User" } )
 	@RequestMapping( value = "/user/{id}", method = RequestMethod.PUT,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<Object> updateUser( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody User user, @PathVariable Long id )
+	public ResponseEntity updateUser( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody User user, @PathVariable Long id )
 	{
 		if (id == null || id == 0)
 			return generateBadRequestResponse();
+
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null ))
+			return generateUnauthorizedResponse();
 
 		Optional<User> userOptional = userRepository.findById( id );
 		if (!userOptional.isPresent())
@@ -92,10 +121,14 @@ public class UserController extends BaseController
 	@ApiOperation( value = "Delete User", tags = { "User" } )
 	@RequestMapping( value = "/user/{id}", method = RequestMethod.DELETE,
 			produces = "application/json" )
-	public ResponseEntity<Object> deleteUserById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
+	public ResponseEntity deleteUserById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
 	{
 		if (id == null || id == 0)
 			return generateBadRequestResponse();
+
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null || !id.equals( loggedInEmployee.getId() ) ))
+			return generateUnauthorizedResponse();
 
 		userRepository.deleteById( id );
 		return generateNoContentResponse();
