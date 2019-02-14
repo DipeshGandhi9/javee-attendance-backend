@@ -11,9 +11,11 @@ import com.javee.attendance.repositories.UserRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -85,6 +87,35 @@ public class AttendanceController extends BaseController
 			return generateOkResponse( attendanceRepository.findAllByEmployee( employee.getId() ) );
 
 		return generateUnauthorizedResponse();
+	}
+
+	@CrossOrigin
+	@ApiOperation( value = "Get All Attendances", tags = { "Attendance" } )
+	@RequestMapping( value = "/attendance/{startDate}{endDate}{id}", method = RequestMethod.GET,
+			produces = "application/json" )
+	public ResponseEntity getFilterAttendances( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestParam( "startDate" ) @DateTimeFormat( pattern = "yyyy-MM-dd HH:mm:ss" ) Date startDate, @RequestParam( "endDate" ) @DateTimeFormat( pattern = "yyyy-MM-dd HH:mm:ss" ) Date endDate, @RequestParam( value = "id", required = false ) Long id )
+	{
+		if (startDate == null && endDate == null && id == 0)
+			return generateBadRequestResponse();
+
+		SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
+
+		Employee employee = getLoggedInEmployee( jwtUserDetails );
+		if (getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ))
+			return getFilterAttendance( formatter.format( startDate ), formatter.format( endDate ), id );
+
+		if (employee != null)
+			return getFilterAttendance( formatter.format( startDate ), formatter.format( endDate ), id );
+
+		return generateUnauthorizedResponse();
+	}
+
+	private ResponseEntity getFilterAttendance( String startDate, String endDate, Long id )
+	{
+		if (startDate != null && endDate != null && id == null)
+			return generateOkResponse( attendanceRepository.filterAttendanceByMonth( startDate, endDate ) );
+		else
+			return generateOkResponse( attendanceRepository.filterAttendanceByEmployeeId( startDate, endDate, id ) );
 	}
 
 	@CrossOrigin
