@@ -4,6 +4,7 @@ import com.javee.attendance.entities.Attendance;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import java.util.Date;
 import java.util.List;
 
 public interface AttendanceRepository extends CrudRepository<Attendance, Long>
@@ -26,9 +27,9 @@ public interface AttendanceRepository extends CrudRepository<Attendance, Long>
 	List<Attendance> getPresentEmployees( @Param( "date" ) String date );
 
 	@Query( value = "Select a from Attendance a where  DATE(a.date) between  DATE(:startDate) and DATE(:endDate)" )
-	List<Attendance> filterAttendanceByMonth( @Param( "startDate" ) String startDate, @Param( "endDate" ) String endDate );
+	List<Attendance> filterAttendanceByDate( @Param( "startDate" ) Date startDate, @Param( "endDate" ) Date endDate );
 
 	@Query( value = "Select a from Attendance a where  DATE(a.date) between  DATE(:startDate) and DATE(:endDate) and a.employee.id = :eid" )
-	List<Attendance> filterAttendanceByEmployeeId( @Param( "startDate" ) String startDate, @Param( "endDate" ) String endDate, @Param( "eid" ) Long employeeId );
+	List<Attendance> filterAttendanceByDateAndEmployeeId( @Param( "startDate" ) Date startDate, @Param( "endDate" ) Date endDate, @Param( "eid" ) Long employeeId );
 
 }

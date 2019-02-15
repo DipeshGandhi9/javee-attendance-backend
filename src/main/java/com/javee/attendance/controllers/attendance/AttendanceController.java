@@ -4,6 +4,7 @@ import com.javee.attendance.controllers.BaseController;
 import com.javee.attendance.entities.Attendance;
 import com.javee.attendance.entities.Employee;
 import com.javee.attendance.entities.User;
+import com.javee.attendance.model.AttendanceFilter;
 import com.javee.attendance.model.JWTUserDetails;
 import com.javee.attendance.repositories.AttendanceRepository;
 import com.javee.attendance.repositories.EmployeeRepository;
@@ -15,10 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -94,26 +93,25 @@ public class AttendanceController extends BaseController
 	@ApiOperation( value = "Get Filter Attendances", tags = { "Attendance" } )
 	@RequestMapping( value = "/attendance/filter", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity getFilterAttendances( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Map<String, String> object ) throws ParseException
+	public ResponseEntity getFilterAttendances( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody AttendanceFilter attendanceFilter ) throws ParseException
 	{
-		if (object.get( "startDate" ) == null && object.get( "endDate" ) == null)
+		if (attendanceFilter.getStartDate() == null && attendanceFilter.getEndDate() == null)
 			return generateBadRequestResponse();
 
-		SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
-		Date startDate = formatter.parse( object.get( "startDate" ) );
-		Date endDate = formatter.parse( object.get( "endDate" ) );
+		Date startDate = attendanceFilter.getStartDate();
+		Date endDate = attendanceFilter.getEndDate();
 
 		Employee employee = getLoggedInEmployee( jwtUserDetails );
 		if (getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ))
 		{
-			if (object.get( "id" ) == null)
-				return generateOkResponse( attendanceRepository.filterAttendanceByMonth( formatter.format( startDate ), formatter.format( endDate ) ) );
+			if (attendanceFilter.getEmployeeId() == null)
+				return generateOkResponse( attendanceRepository.filterAttendanceByDate( startDate, endDate ) );
 			else
-				return generateOkResponse( attendanceRepository.filterAttendanceByEmployeeId( formatter.format( startDate ), formatter.format( endDate ), Long.parseLong( object.get( "id" ) ) ) );
+				return generateOkResponse( attendanceRepository.filterAttendanceByDateAndEmployeeId( startDate, endDate, attendanceFilter.getEmployeeId() ) );
 		}
 
 		if (employee != null)
-			return generateOkResponse( attendanceRepository.filterAttendanceByEmployeeId( formatter.format( startDate ), formatter.format( endDate ), employee.getId() ) );
+			return generateOkResponse( attendanceRepository.filterAttendanceByDateAndEmployeeId( startDate, endDate, employee.getId() ) );
 
 		return generateUnauthorizedResponse();
 	}

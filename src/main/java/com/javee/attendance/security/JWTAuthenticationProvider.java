@@ -6,6 +6,7 @@ import com.javee.attendance.model.JWTUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.AuthenticationException;
@@ -40,9 +41,7 @@ public class JWTAuthenticationProvider extends AbstractUserDetailsAuthentication
 		User user = validator.validate(token);
 
 		if (user == null)
-		{
-			throw new RuntimeException( " JWT Token was incorrect" );
-		}
+			throw new BadCredentialsException( "Invalid Credentials" );
 
 		List<GrantedAuthority> grantedAuthorities = AuthorityUtils
 				.commaSeparatedStringToAuthorityList( user.getRole().toString());

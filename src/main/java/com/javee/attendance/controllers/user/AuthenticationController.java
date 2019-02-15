@@ -34,7 +34,7 @@ public class AuthenticationController extends BaseController
 
 		if (userEntity != null)
 		{
-			String token = JWTTokenGenerator.generateToken( user );
+			String token = JWTTokenGenerator.generateToken( userEntity );
 			AuthenticationResponse authenticationResponse = new AuthenticationResponse( token );
 			return generateOkResponse( authenticationResponse );
 		}
