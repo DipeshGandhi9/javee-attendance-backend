@@ -11,13 +11,14 @@ import com.javee.attendance.repositories.UserRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -90,32 +91,31 @@ public class AttendanceController extends BaseController
 	}
 
 	@CrossOrigin
-	@ApiOperation( value = "Get All Attendances", tags = { "Attendance" } )
-	@RequestMapping( value = "/attendance/{startDate}{endDate}{id}", method = RequestMethod.GET,
-			produces = "application/json" )
-	public ResponseEntity getFilterAttendances( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestParam( "startDate" ) @DateTimeFormat( pattern = "yyyy-MM-dd HH:mm:ss" ) Date startDate, @RequestParam( "endDate" ) @DateTimeFormat( pattern = "yyyy-MM-dd HH:mm:ss" ) Date endDate, @RequestParam( value = "id", required = false ) Long id )
+	@ApiOperation( value = "Get Filter Attendances", tags = { "Attendance" } )
+	@RequestMapping( value = "/attendance/filter", method = RequestMethod.POST,
+			produces = "application/json", consumes = "application/json" )
+	public ResponseEntity getFilterAttendances( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Map<String, String> object ) throws ParseException
 	{
-		if (startDate == null && endDate == null && id == 0)
+		if (object.get( "startDate" ) == null && object.get( "endDate" ) == null)
 			return generateBadRequestResponse();
 
 		SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
+		Date startDate = formatter.parse( object.get( "startDate" ) );
+		Date endDate = formatter.parse( object.get( "endDate" ) );
 
 		Employee employee = getLoggedInEmployee( jwtUserDetails );
 		if (getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ))
-			return getFilterAttendance( formatter.format( startDate ), formatter.format( endDate ), id );
+		{
+			if (object.get( "id" ) == null)
+				return generateOkResponse( attendanceRepository.filterAttendanceByMonth( formatter.format( startDate ), formatter.format( endDate ) ) );
+			else
+				return generateOkResponse( attendanceRepository.filterAttendanceByEmployeeId( formatter.format( startDate ), formatter.format( endDate ), Long.parseLong( object.get( "id" ) ) ) );
+		}
 
 		if (employee != null)
-			return getFilterAttendance( formatter.format( startDate ), formatter.format( endDate ), id );
+			return generateOkResponse( attendanceRepository.filterAttendanceByEmployeeId( formatter.format( startDate ), formatter.format( endDate ), employee.getId() ) );
 
 		return generateUnauthorizedResponse();
-	}
-
-	private ResponseEntity getFilterAttendance( String startDate, String endDate, Long id )
-	{
-		if (startDate != null && endDate != null && id == null)
-			return generateOkResponse( attendanceRepository.filterAttendanceByMonth( startDate, endDate ) );
-		else
-			return generateOkResponse( attendanceRepository.filterAttendanceByEmployeeId( startDate, endDate, id ) );
 	}
 
 	@CrossOrigin
