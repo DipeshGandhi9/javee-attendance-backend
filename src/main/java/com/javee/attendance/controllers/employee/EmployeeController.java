@@ -50,7 +50,8 @@ public class EmployeeController extends BaseController
 
 		Optional<Employee> employeeOptional = employeeRepository.findById( id );
 
-		employeeOptional.ifPresent( this::generateOkResponse );
+		if(employeeOptional.isPresent())
+			return generateOkResponse( employeeOptional );
 
 		return generateNotFoundResponse();
 	}
@@ -64,8 +65,11 @@ public class EmployeeController extends BaseController
 		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null ))
 			return generateUnauthorizedResponse();
 
-		if (employeeRepository == null)
-			return generateNotFoundResponse();
+
+		if(getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.EMPLOYEE ))
+		{
+			return generateOkResponse( employeeRepository.findById( loggedInEmployee.getId() ) );
+		}
 
 		return generateOkResponse( employeeRepository.findAll() );
 	}
@@ -93,7 +97,7 @@ public class EmployeeController extends BaseController
 	@CrossOrigin
 	@RequestMapping( value = "/employee/{id}", method = RequestMethod.DELETE,
 			produces = "application/json" )
-	public ResponseEntity deleteEmployeeById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
+	public ResponseEntity deleteEmployeeById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id ) throws Exception
 	{
 		if (id == null || id == 0)
 			return generateBadRequestResponse();

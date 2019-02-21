@@ -18,13 +18,13 @@ public interface AttendanceRepository extends CrudRepository<Attendance, Long>
 	List<Attendance> findAllByEmployee( @Param( "eid" ) Long employeeId );
 
 	@Query( value = "Select count(distinct a.employee.id) from Attendance a where DATE(a.date) = DATE(:date) " )
-	Integer totalPresentEmployee( @Param( "date" ) String date );
+	Integer totalPresentEmployee( @Param( "date" ) Date date );
 
 	@Query( value = "Select count(e) from Employee e where e.id NOT IN (select a.employee.id from Attendance a where  DATE(a.date) = DATE(:date) Group by a.employee.id)" )
-	Integer totalOnLeaveEmployee( @Param( "date" ) String date );
+	Integer totalOnLeaveEmployee( @Param( "date" ) Date date );
 
 	@Query( value = "Select a  from Attendance a where  DATE(a.date) = DATE(:date)  Order by a.date DESC" )
-	List<Attendance> getPresentEmployees( @Param( "date" ) String date );
+	List<Attendance> getPresentEmployees( @Param( "date" ) Date date );
 
 	@Query( value = "Select a from Attendance a where  DATE(a.date) between  DATE(:startDate) and DATE(:endDate)" )
 	List<Attendance> filterAttendanceByDate( @Param( "startDate" ) Date startDate, @Param( "endDate" ) Date endDate );

@@ -1,8 +1,11 @@
 package com.javee.attendance.controllers.dashboard;
 
+
 import com.javee.attendance.controllers.BaseController;
+import com.javee.attendance.entities.Attendance;
 import com.javee.attendance.entities.Employee;
 import com.javee.attendance.entities.User;
+import com.javee.attendance.model.Dashboard;
 import com.javee.attendance.model.JWTUserDetails;
 import com.javee.attendance.repositories.AttendanceRepository;
 import com.javee.attendance.repositories.EmployeeRepository;
@@ -10,12 +13,11 @@ import com.javee.attendance.repositories.UserRepository;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.text.ParseException;
+import java.util.*;
 
 @RestController
 @Api( value = "Dashboard", description = "REST API for Dashboard", tags = { "Dashboard" } )
@@ -33,112 +35,30 @@ public class DashboardController extends BaseController
 	private UserRepository userRepository;
 
 	@CrossOrigin
-	@ApiOperation( value = "Get Total Employees", tags = { "Dashboard" } )
-	@RequestMapping( value = "/totalEmployees", method = RequestMethod.GET,
+	@ApiOperation( value = "Get Dashboard Data", tags = { "Dashboard" } )
+	@RequestMapping( value = "/dashboard", method = RequestMethod.POST,
 			produces = "application/json" )
-	public ResponseEntity getTotalEmployees( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
+	public ResponseEntity getDashboardData( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Dashboard dashboard  ) throws ParseException
 	{
 		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
 		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null ))
 			return generateUnauthorizedResponse();
 
-		if (employeeRepository == null)
-			return generateNotFoundResponse();
+		int totalEmployees = employeeRepository.totalEmployee();
+		int leaveCount = attendanceRepository.totalOnLeaveEmployee( dashboard.getDate()  );
+		int presentCount = attendanceRepository.totalPresentEmployee(  dashboard.getDate()  );
+		ArrayList<Attendance> attendances;
 
-		return generateOkResponse( employeeRepository.totalEmployee() );
+		if (( getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.EMPLOYEE ) ) && ( loggedInEmployee != null ))
+			attendances = (ArrayList) attendanceRepository.filterAttendanceByDateAndEmployeeId( dashboard.getDate(), dashboard.getDate(), loggedInEmployee.getId());
+		else
+			attendances = (ArrayList) attendanceRepository.getPresentEmployees( dashboard.getDate()  );
+
+		dashboard.setTotalEmployee( totalEmployees );
+		dashboard.setLeaveCount( leaveCount );
+		dashboard.setPresentCount( presentCount );
+		dashboard.setAttendances( attendances );
+		return generateOkResponse(  dashboard  );
 	}
 
-	@CrossOrigin
-	@ApiOperation( value = "Get Present Employees", tags = { "Dashboard" } )
-	@RequestMapping( value = "/dashboard/presentEmployees/{date}", method = RequestMethod.GET,
-			produces = "application/json" )
-	public ResponseEntity getPresentEmployees( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestParam( "date" ) @DateTimeFormat( pattern = "yyyy-MM-dd HH:mm:ss" ) Date date )
-	{
-		if (date == null)
-			return generateBadRequestResponse();
-
-		SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
-
-		Employee employee = getLoggedInEmployee( jwtUserDetails );
-		if (getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ))
-			return generateOkResponse( attendanceRepository.getPresentEmployees( formatter.format( date ) ) );
-
-		if (employee != null || employee.getId() != null)
-			return generateOkResponse( attendanceRepository.getPresentEmployees( formatter.format( date ) ) );
-
-		return generateUnauthorizedResponse();
-	}
-
-	@CrossOrigin
-	@ApiOperation( value = "Get Present Employees Count", tags = { "Dashboard" } )
-	@RequestMapping( value = "/dashboard/presentCount/{date}", method = RequestMethod.GET,
-			produces = "application/json" )
-	public ResponseEntity getPresentEmployeeCount( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestParam( "date" ) @DateTimeFormat( pattern = "yyyy-MM-dd HH:mm:ss" ) Date date )
-	{
-		if (date == null)
-			return generateBadRequestResponse();
-
-		Employee employee = getLoggedInEmployee( jwtUserDetails );
-		if (getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ))
-			return getResponse( "totalPresentEmployee", date );
-
-		if (employee != null)
-			return getResponse( "totalPresentEmployee", date );
-
-		return generateUnauthorizedResponse();
-	}
-
-	@CrossOrigin
-	@ApiOperation( value = "Get On Leave Employees Count", tags = { "Dashboard" } )
-	@RequestMapping( value = "/dashboard/leaveCount/{date}", method = RequestMethod.GET,
-			produces = "application/json" )
-	public ResponseEntity getOnLeaveEmployee( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestParam( "date" ) @DateTimeFormat( pattern = "yyyy-MM-dd HH:mm:ss" ) Date date )
-	{
-		if (date == null)
-			return generateBadRequestResponse();
-
-		Employee employee = getLoggedInEmployee( jwtUserDetails );
-		if (getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ))
-			return getResponse( "totalOnLeaveEmployee", date );
-
-		if (employee != null)
-			return getResponse( "totalOnLeaveEmployee", date );
-
-		return generateUnauthorizedResponse();
-	}
-
-	private ResponseEntity getResponse( String method, Date date )
-	{
-		SimpleDateFormat formatter = new SimpleDateFormat( "yyyy-MM-dd HH:mm:ss" );
-		ResponseEntity response = null;
-
-		switch ( method )
-		{
-		case "totalPresentEmployee":
-			if (attendanceRepository.totalPresentEmployee( formatter.format( date ) ) != null)
-				response = generateOkResponse( attendanceRepository.totalPresentEmployee( formatter.format( date ) ) );
-			else
-				response = generateOkResponse( 0 );
-
-			break;
-		case "totalOnLeaveEmployee":
-			if (attendanceRepository.totalOnLeaveEmployee( formatter.format( date ) ) != null)
-				response = generateOkResponse( attendanceRepository.totalOnLeaveEmployee( formatter.format( date ) ) );
-			else
-				response = generateOkResponse( 0 );
-
-			break;
-		}
-		return response;
-	}
-
-
-    /*--------------------------------------------
-    |  A C C E S S O R S / M O D I F I E R S    |
-    ============================================*/
-	
-	/*--------------------------------------------
-	|       I N L I N E    C L A S S E S        |
-	============================================*/
 }
-
