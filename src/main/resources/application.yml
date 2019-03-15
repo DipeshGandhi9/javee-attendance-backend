@@ -1,0 +1,9 @@
+management:
+  Security:
+    enabled: true
+
+
+Spring:
+  resources:
+    chain:
+      enabled: true

@@ -1,29 +1,36 @@
 package com.javee.attendance.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.persistence.*;
 
 @Entity
 public class User
 {
-	enum ROLE
+	public enum ROLE
 	{
 		ADMIN, HR_MANAGER, EMPLOYEE
 	}
+
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
-	private Integer id;
+	private Long id;
+
 	@OneToOne
 	private Employee employee;
+
 	private String userName;
+
+	@JsonProperty( access = JsonProperty.Access.WRITE_ONLY )
 	private String password;
+
 	private ROLE role = ROLE.EMPLOYEE;
 
-	public Integer getId()
+	public Long getId()
 	{
 		return id;
 	}
 
-	public void setId( Integer id )
+	public void setId( Long id )
 	{
 		this.id = id;
 	}
