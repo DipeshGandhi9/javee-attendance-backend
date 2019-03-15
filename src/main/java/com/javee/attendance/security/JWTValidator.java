@@ -7,8 +7,11 @@ import io.jsonwebtoken.Jwts;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
+import javax.xml.bind.DatatypeConverter;
 import java.util.Base64;
+import java.util.Date;
 
 @Component
 public class JWTValidator
@@ -29,26 +32,44 @@ public class JWTValidator
 
 		try
 		{
-			user = userRepository.findByUserName( userName );
+			User userObject = userRepository.findByUserName( userName );
 
-			if (user == null)
-				return null;
+			if (userObject == null)
+				throw new BadCredentialsException( "Invalid Credentials" );
 
 			Claims body = Jwts.parser()
-					.setSigningKey( user.getPassword() )
+					.setSigningKey( DatatypeConverter.parseBase64Binary( userObject.getPassword() ) )
 					.parseClaimsJws( userToken )
 					.getBody();
 
-			user.setUserName( body.getSubject() );
-			user.setId( Long.parseLong( (String) body.get( "userId" ) ) );
-			user.setRole( User.ROLE.valueOf( (String) body.get( "role" ) ) );
+			if (body.getExpiration() == null || body.getExpiration().getTime() < ( new Date() ).getTime())
+				throw new BadCredentialsException( "Session Expired" );
+
+			if (isValidateUser( userObject, body ))
+				user = userObject;
+
 		}
 		catch ( Exception e )
 		{
-			System.out.println();
+			System.out.println( e );
 		}
 
 		return user;
+	}
+
+	private boolean isValidateUser( User user, Claims body )
+	{
+		boolean isValid = true;
+		if (user == null || user.getId() != Long.parseLong( (String) body.get( "userId" ) ))
+			isValid = false;
+
+		if (user == null || !user.getUserName().equals( body.getSubject() ))
+			isValid = false;
+
+		if (user == null || !user.getRole().equals( User.ROLE.valueOf( (String) body.get( "role" ) ) ))
+			isValid = false;
+
+		return isValid;
 	}
 }
 

@@ -1,22 +1,21 @@
 package com.javee.attendance.controllers.employee;
 
+import com.javee.attendance.controllers.BaseController;
 import com.javee.attendance.entities.Employee;
 import com.javee.attendance.entities.User;
 import com.javee.attendance.model.JWTUserDetails;
 import com.javee.attendance.repositories.EmployeeRepository;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
 @Api( value = "Employee", description = "REST API for Employee", tags = { "Employee" } )
 @RequestMapping( "/api" )
-public class EmployeeController
+public class EmployeeController extends BaseController
 {
 	@Autowired
 	private EmployeeRepository employeeRepository;
@@ -24,55 +23,92 @@ public class EmployeeController
 	@CrossOrigin
 	@RequestMapping( value = "/employee", method = RequestMethod.POST,
 			produces = "application/json", consumes = "application/json" )
-	public Employee createEmpolyee( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Employee employee )
+	public ResponseEntity createEmpolyee( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Employee employee )
 	{
-		System.out.println( "User Id : " + jwtUserDetails.getId() );
+		if (employee == null)
+			return generateBadRequestResponse();
+
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null || !employee.getId().equals( loggedInEmployee.getId() ) ))
+			return generateUnauthorizedResponse();
+
 		employee = employeeRepository.save( employee );
-		return employee;
+		return generateOkResponse( employee );
 	}
 
 	@CrossOrigin
 	@RequestMapping( value = "/employee/{id}", method = RequestMethod.GET,
 			produces = "application/json" )
-	public Employee getEmployeeById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
+	public ResponseEntity getEmployeeById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
 	{
+		if (id == null || id == 0)
+			return generateBadRequestResponse();
+
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null || !id.equals( loggedInEmployee.getId() ) ))
+			return generateUnauthorizedResponse();
+
 		Optional<Employee> employeeOptional = employeeRepository.findById( id );
-		return employeeOptional.get();
+
+		if(employeeOptional.isPresent())
+			return generateOkResponse( employeeOptional );
+
+		return generateNotFoundResponse();
 	}
 
 	@CrossOrigin
 	@RequestMapping( value = "/employees", method = RequestMethod.GET,
 			produces = "application/json" )
-	public ResponseEntity<List<Employee>> getEmployees( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
+	public ResponseEntity getEmployees( @AuthenticationPrincipal JWTUserDetails jwtUserDetails )
 	{
-		System.out.println( "User Id : " + jwtUserDetails.getId() + " User Name : " + jwtUserDetails.getUsername());
-		if(!jwtUserDetails.getAuthorities().stream().findFirst().get().toString().equalsIgnoreCase( User.ROLE.ADMIN.name()) ){
-			return new ResponseEntity<>(  HttpStatus.FORBIDDEN );
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null ))
+			return generateUnauthorizedResponse();
+
+
+		if(getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.EMPLOYEE ))
+		{
+			return generateOkResponse( employeeRepository.findById( loggedInEmployee.getId() ) );
 		}
 
-		return new ResponseEntity<>( employeeRepository.findAll(), HttpStatus.OK );
+		return generateOkResponse( employeeRepository.findAll() );
 	}
 
 	@CrossOrigin
 	@RequestMapping( value = "/employee/{id}", method = RequestMethod.PUT,
 			produces = "application/json", consumes = "application/json" )
-	public ResponseEntity<Object> updateEmployee( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Employee employee, @PathVariable Long id )
+	public ResponseEntity updateEmployee( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @RequestBody Employee employee, @PathVariable Long id )
 	{
+		if (id == null || id == 0)
+			return generateBadRequestResponse();
+
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null || !id.equals( loggedInEmployee.getId() ) ))
+			return generateUnauthorizedResponse();
+
 		Optional<Employee> employeeOptional = employeeRepository.findById( id );
 		if (!employeeOptional.isPresent())
-			return ResponseEntity.notFound().build();
+			return generateNotFoundResponse();
 		employee.setId( id );
 		employeeRepository.save( employee );
-		return ResponseEntity.noContent().build();
+		return generateNoContentResponse();
 	}
 
 	@CrossOrigin
 	@RequestMapping( value = "/employee/{id}", method = RequestMethod.DELETE,
 			produces = "application/json" )
-	public boolean deleteEmployeeById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id )
+	public ResponseEntity deleteEmployeeById( @AuthenticationPrincipal JWTUserDetails jwtUserDetails, @PathVariable( "id" ) Long id ) throws Exception
 	{
+		if (id == null || id == 0)
+			return generateBadRequestResponse();
+
+		Employee loggedInEmployee = getLoggedInEmployee( jwtUserDetails );
+		if (( !getLoggedInUserRole( jwtUserDetails ).equals( User.ROLE.ADMIN ) ) && ( loggedInEmployee == null || !id.equals( loggedInEmployee.getId() ) ))
+			return generateUnauthorizedResponse();
+
 		employeeRepository.deleteById( id );
-		return true;
+
+		return generateNoContentResponse();
 
 	}
 
